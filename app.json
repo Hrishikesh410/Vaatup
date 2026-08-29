@@ -1,0 +1,78 @@
+{
+  "expo": {
+    "name": "VaatUp",
+    "slug": "vaatup",
+    "description": "Split a restaurant bill equally, by amount, or by percentage, then send each person their share on WhatsApp.",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "vaatup",
+    "userInterfaceStyle": "automatic",
+    "primaryColor": "#0F9D58",
+    "ios": {
+      "bundleIdentifier": "com.quicksplit.app",
+      "buildNumber": "1",
+      "supportsTablet": true,
+      "infoPlist": {
+        "LSApplicationQueriesSchemes": [
+          "whatsapp"
+        ]
+      }
+    },
+    "android": {
+      "package": "com.quicksplit.app",
+      "versionCode": 1,
+      "permissions": [
+        "android.permission.VIBRATE"
+      ],
+      "blockedPermissions": [
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.SYSTEM_ALERT_WINDOW",
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.READ_MEDIA_VIDEO",
+        "android.permission.READ_MEDIA_VISUAL_USER_SELECTED"
+      ],
+      "adaptiveIcon": {
+        "backgroundColor": "#0F9D58",
+        "foregroundImage": "./assets/images/android-icon-foreground.png",
+        "backgroundImage": "./assets/images/android-icon-background.png",
+        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "output": "single",
+      "favicon": "./assets/images/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#0F9D58",
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 120,
+          "dark": {
+            "backgroundColor": "#0B6B3C",
+            "image": "./assets/images/splash-icon.png"
+          }
+        }
+      ],
+      "expo-sqlite",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "VaatUp only opens your photos so you can attach a receipt to an expense. The photo stays on this device.",
+          "cameraPermission": false,
+          "microphonePermission": false
+        }
+      ],
+      "./plugins/with-whatsapp-visibility.js"
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    }
+  }
+}
