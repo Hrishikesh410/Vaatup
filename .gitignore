@@ -45,6 +45,11 @@ coverage/
 
 example
 
+# local release signing (do not commit)
+.release-keystore/
+*.keystore
+keystore.properties
+
 # generated native folders
 /ios
 /android

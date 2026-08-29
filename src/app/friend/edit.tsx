@@ -1,6 +1,8 @@
 import { useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
+import { Alert } from 'react-native';
 
+import { pickContact } from '@/application/contacts-service';
 import { saveFriend } from '@/application/people-service';
 import { AppText } from '@/components/app-text';
 import { Card, SectionLabel } from '@/components/card';
@@ -45,6 +47,27 @@ export default function FriendEditScreen() {
   const phoneUsable = phone.trim() === '' || isValidPhoneNumber(phone);
   const ready = name.trim() !== '' && phoneUsable;
 
+  /** Fills the fields from the address book, leaving them editable as they were. */
+  const chooseFromContacts = async () => {
+    const result = await pickContact();
+
+    if (!result.ok) {
+      if (result.reason === 'cancelled') return;
+      tapWarning();
+      Alert.alert(
+        'Could not open contacts',
+        result.reason === 'denied'
+          ? 'VaatUp needs permission to read the contact you pick. Allow contacts in Settings, or type the name and number here.'
+          : 'This phone would not open its contacts. Type the name and number here instead.'
+      );
+      return;
+    }
+
+    setName(result.contact.name);
+    setPhone(result.contact.phone ?? '');
+    setError(null);
+  };
+
   const save = async () => {
     if (!user) return;
     setSaving(true);
@@ -82,6 +105,14 @@ export default function FriendEditScreen() {
     >
       <Card>
         <SectionLabel>{existing ? 'Edit person' : 'New person'}</SectionLabel>
+        {existing ? null : (
+          <PrimaryButton
+            label="Choose from contacts"
+            variant="secondary"
+            size="sm"
+            onPress={() => void chooseFromContacts()}
+          />
+        )}
         <TextField
           label="Name"
           value={name}

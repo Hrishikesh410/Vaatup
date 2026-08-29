@@ -13,8 +13,9 @@ Everything in the repo is already configured for a production Android release. W
 | Launcher icon | `assets/images/android-icon-*.png` | Adaptive: foreground, background, monochrome |
 | Splash screen | `expo-splash-screen` plugin | Brand green with light and dark variants |
 | Orientation | `app.json` → `orientation` | `portrait` |
-| Permissions | `app.json` → `android.permissions` / `blockedPermissions` | `INTERNET` and `VIBRATE` (haptics); storage, media, camera, microphone, and overlay are stripped |
+| Permissions | `app.json` → `android.permissions` / `blockedPermissions` | `INTERNET`, `VIBRATE` (haptics), `READ_CONTACTS` (optional, see below); storage, media, camera, microphone, overlay, and `WRITE_CONTACTS` are stripped |
 | App visibility | `plugins/with-whatsapp-visibility.js` | Declares `com.whatsapp` and `com.whatsapp.w4b` in `<queries>` |
+| Release signing | `plugins/with-release-signing.js` | Uses the keystore named in `keystore.properties` when that file is present |
 | Build profiles | `eas.json` | `development`, `preview` (APK), `production` (AAB) |
 | Submit profile | `eas.json` → `submit.production.android` | Internal track, draft release |
 | Hi-res store icon | `docs/store/play-store-icon-512.png` | 512×512 |
@@ -22,9 +23,11 @@ Everything in the repo is already configured for a production Android release. W
 | Phone screenshots | `docs/screenshots/*.png` | 5 shots, 1215×2400, 24-bit PNG — **need re-shooting**, see below |
 | Privacy policy | `docs/store/PRIVACY_POLICY.md` | Ready to publish |
 
-The app declares **no dangerous permissions** and collects no data, which keeps the Data Safety form short. `VIBRATE` is a normal permission: it drives haptic feedback and never prompts the user. Receipts use Android's system photo picker, which returns the one photo the user selects without any media permission, so `READ_MEDIA_*` is blocked along with the camera and microphone permissions `expo-image-picker` would otherwise add.
+`READ_CONTACTS` is the app's one dangerous permission, and it is optional: it backs the "Choose from contacts" button on the add-person form, is requested at the moment that button is pressed, and every screen it appears on still works by typing the name and number instead. The picker itself is the system one, so the user chooses a single contact in Android's own UI and only that person's name and one phone number come back — into a form field, which they can edit before anything is saved. Nothing writes back to the address book, so `WRITE_CONTACTS`, which `expo-contacts` would otherwise add, is blocked.
 
-Sign-in, expenses, people, groups, settlements, and receipts are all stored in a local SQLite database. Nothing is transmitted, so every Data Safety answer about collection and sharing remains "no" — including the account itself, which exists only on the device. `INTERNET` is added by React Native itself and is what the WhatsApp hand-off travels over; the app has no server of its own to call.
+`VIBRATE` is a normal permission: it drives haptic feedback and never prompts the user. Receipts use Android's system photo picker, which returns the one photo the user selects without any media permission, so `READ_MEDIA_*` is blocked along with the camera and microphone permissions `expo-image-picker` would otherwise add.
+
+Sign-in, expenses, people, groups, settlements, and receipts are all stored in a local SQLite database. Nothing is transmitted, so every Data Safety answer about collection and sharing remains "no" — including the account itself, which exists only on the device, and the contact details copied into a bill. `INTERNET` is added by React Native itself and is what the WhatsApp hand-off travels over; the app has no server of its own to call.
 
 The screenshots in `docs/screenshots/` are the one asset the rename could not fix in place: they are photographs of the running app, so they still show the old wordmark in the header. They also predate the tab navigation, so they no longer match the app regardless of the name. Re-shoot all five before submitting. The launcher icon, splash image, and hi-res store icon are the ₹ glyph with no wordmark, so they carried over unchanged.
 
@@ -149,7 +152,7 @@ VaatUp is not an expense tracker, a social network or a payments app. It's the f
 | Content rating | Complete the questionnaire — a utility with no user content rates 3+ / Everyone |
 | Target audience | 18+ (or 13+) — not designed for children, so answer "No" to appealing to children |
 | News app | No |
-| Data safety | **No data collected, no data shared.** Bills, phone numbers, and the user's own optional UPI ID stay in the app's own storage on the device and are never transmitted by VaatUp. Phone numbers are used only to build a WhatsApp link that the user then sends themselves. Play's "collected" means sent off the device, which nothing here is. |
+| Data safety | **No data collected, no data shared.** Bills, phone numbers, and the user's own optional UPI ID stay in the app's own storage on the device and are never transmitted by VaatUp. Phone numbers are used only to build a WhatsApp link that the user then sends themselves. A contact picked through "Choose from contacts" is read on the device and goes no further than the same local storage. Play's "collected" means sent off the device, which nothing here is. |
 | Government app | No |
 | Financial features | No — VaatUp does not process payments, lend, or handle financial accounts. The optional UPI feature only writes a `upi://pay` request into a message or QR code; the payer's own bank app performs the transfer, and VaatUp holds no credentials and touches no payment network. |
 | Health | No |

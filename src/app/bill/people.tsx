@@ -1,7 +1,8 @@
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, View } from 'react-native';
 
+import { pickContact } from '@/application/contacts-service';
 import { AppText } from '@/components/app-text';
 import { Card, SectionLabel } from '@/components/card';
 import { PersonRow } from '@/components/person-row';
@@ -85,6 +86,33 @@ export default function PeopleScreen() {
     resetForm();
   };
 
+  /**
+   * Fills the form from the address book instead of adding the person outright.
+   * The number that comes back is often a landline or an old one, and the user
+   * gets to see and fix it before it is used to message anybody.
+   */
+  const chooseFromContacts = async () => {
+    const result = await pickContact();
+
+    if (!result.ok) {
+      if (result.reason === 'cancelled') return;
+      tapWarning();
+      Alert.alert(
+        'Could not open contacts',
+        result.reason === 'denied'
+          ? 'VaatUp needs permission to read the contact you pick. Allow contacts in Settings, or type the name and number here.'
+          : 'This phone would not open its contacts. Type the name and number here instead.'
+      );
+      return;
+    }
+
+    tapSelection();
+    setName(result.contact.name);
+    setPhone(result.contact.phone ?? '');
+    setNameError(undefined);
+    setPhoneError(undefined);
+  };
+
   const quickAdd = (person: Person) => {
     tapSelection();
     // Passing the saved id keeps this the same participant rather than a
@@ -158,6 +186,14 @@ export default function PeopleScreen() {
       {formOpen ? (
         <Card>
           <SectionLabel>{editingId ? 'Edit person' : 'Add person'}</SectionLabel>
+          {editingId ? null : (
+            <PrimaryButton
+              label="Choose from contacts"
+              variant="secondary"
+              size="sm"
+              onPress={() => void chooseFromContacts()}
+            />
+          )}
           <TextField
             label="Name"
             value={name}

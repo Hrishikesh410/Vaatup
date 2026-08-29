@@ -1,13 +1,12 @@
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import {
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
   StyleSheet,
   View,
+  type LayoutChangeEvent,
   type StyleProp,
   type ViewStyle,
 } from 'react-native';
+import { KeyboardAwareScrollView, KeyboardStickyView } from 'react-native-keyboard-controller';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { borderWidth, footerElevation, spacing, useTheme } from '@/theme/theme';
@@ -23,13 +22,24 @@ export interface ScreenProps {
 /**
  * Common screen chrome: background, keyboard avoidance, and a footer that keeps
  * the primary action within thumb reach.
+ *
+ * Keyboard handling is react-native-keyboard-controller's rather than React
+ * Native's `KeyboardAvoidingView`. The app draws edge to edge, and under that
+ * Android stopped resizing the window when the keyboard opens, so the
+ * `adjustResize` the manifest asks for moves nothing and a field low on the
+ * screen ends up behind the keys.
  */
 export function Screen({ children, footer, scroll = true, contentStyle }: ScreenProps) {
   const { colors, dark } = useTheme();
   const insets = useSafeAreaInsets();
+  // Measured rather than assumed: it is how far a focused field has to clear
+  // the footer, and footers here run from one button to a button and two lines
+  // of explanation.
+  const [footerHeight, setFooterHeight] = useState(0);
 
   const body = scroll ? (
-    <ScrollView
+    <KeyboardAwareScrollView
+      bottomOffset={footerHeight + spacing.md}
       style={styles.flex}
       contentContainerStyle={[styles.content, contentStyle]}
       keyboardShouldPersistTaps="handled"
@@ -37,33 +47,37 @@ export function Screen({ children, footer, scroll = true, contentStyle }: Screen
       showsVerticalScrollIndicator={false}
     >
       {children}
-    </ScrollView>
+    </KeyboardAwareScrollView>
   ) : (
     <View style={[styles.flex, styles.content, contentStyle]}>{children}</View>
   );
 
   return (
-    <KeyboardAvoidingView
-      style={[styles.flex, { backgroundColor: colors.background }]}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
+    <View style={[styles.flex, { backgroundColor: colors.background }]}>
       {body}
       {footer ? (
-        <View
-          style={[
-            styles.footer,
-            {
-              paddingBottom: Math.max(insets.bottom, spacing.lg),
-              borderTopColor: colors.border,
-              backgroundColor: colors.background,
-            },
-            footerElevation(colors, dark),
-          ]}
-        >
-          {footer}
-        </View>
+        // The footer rides above the keyboard: the action it holds is usually
+        // what the user is typing towards.
+        <KeyboardStickyView>
+          <View
+            onLayout={(event: LayoutChangeEvent) =>
+              setFooterHeight(event.nativeEvent.layout.height)
+            }
+            style={[
+              styles.footer,
+              {
+                paddingBottom: Math.max(insets.bottom, spacing.lg),
+                borderTopColor: colors.border,
+                backgroundColor: colors.background,
+              },
+              footerElevation(colors, dark),
+            ]}
+          >
+            {footer}
+          </View>
+        </KeyboardStickyView>
       ) : null}
-    </KeyboardAvoidingView>
+    </View>
   );
 }
 

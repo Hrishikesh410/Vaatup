@@ -2,6 +2,7 @@ import { DarkTheme, DefaultTheme, Stack, ThemeProvider, useRouter, useSegments }
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { ActivityIndicator, Platform, StyleSheet, View } from 'react-native';
+import { KeyboardProvider } from 'react-native-keyboard-controller';
 
 import { HeaderBackButton } from '@/components/header-back-button';
 import { BillDraftProvider } from '@/state/bill-draft';
@@ -13,18 +14,21 @@ export default function RootLayout() {
   const { dark } = useTheme();
 
   return (
-    <ThemeProvider value={dark ? DarkTheme : DefaultTheme}>
-      {/* Session first: the draft and every data hook read from it. */}
-      <SessionProvider>
-        <RefreshProvider>
-          <BillDraftProvider>
-            <StatusBar style={dark ? 'light' : 'dark'} />
-            <AuthGate />
-            <AppStack />
-          </BillDraftProvider>
-        </RefreshProvider>
-      </SessionProvider>
-    </ThemeProvider>
+    // Outermost, because every screen's keyboard handling reads from it.
+    <KeyboardProvider>
+      <ThemeProvider value={dark ? DarkTheme : DefaultTheme}>
+        {/* Session first: the draft and every data hook read from it. */}
+        <SessionProvider>
+          <RefreshProvider>
+            <BillDraftProvider>
+              <StatusBar style={dark ? 'light' : 'dark'} />
+              <AuthGate />
+              <AppStack />
+            </BillDraftProvider>
+          </RefreshProvider>
+        </SessionProvider>
+      </ThemeProvider>
+    </KeyboardProvider>
   );
 }
 
@@ -95,6 +99,8 @@ function AppStack() {
     >
       <Stack.Screen name="(auth)" options={{ headerShown: false }} />
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      {/* Its own heading carries the screen, and there is nothing to go back to. */}
+      <Stack.Screen name="onboarding" options={{ headerShown: false }} />
       <Stack.Screen name="bill/create" options={{ title: 'New expense' }} />
       <Stack.Screen name="bill/people" options={{ title: 'People' }} />
       <Stack.Screen name="bill/split" options={{ title: 'Split' }} />

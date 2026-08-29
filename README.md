@@ -20,7 +20,7 @@ VaatUp starts from one question — _"I just paid the bill, how fast can I tell 
 - **Settle up** — record a payment in either direction, in part or in full, and tell the other person on WhatsApp
 - **History** — every expense, searchable and filterable by group, category, and date, grouped by the day it was spent
 - **Groups** — a trip or a flat, with its own balances
-- **People** — anyone you split with, saved as you go; nobody else needs the app installed
+- **People** — anyone you split with, saved as you go, picked from your contacts or typed in; nobody else needs the app installed
 - **Details on an expense** — category, notes, comments, a photo of the receipt, and itemised lines
 - **Repeating expenses** — rent or a shared subscription, added when it comes due
 
@@ -205,7 +205,7 @@ npx eas-cli@latest build --platform android --profile production   # signed .aab
 npx eas-cli@latest submit --platform android --profile production --latest
 ```
 
-`eas.json` defines three profiles — `development` (dev client), `preview` (installable APK for device testing), and `production` (Play-ready app bundle with an auto-incrementing `versionCode`). The Android build declares `INTERNET` and `VIBRATE` (for haptic feedback, a normal permission that never prompts); storage and overlay permissions that arrive through native manifest merging are stripped in `app.json` via `blockedPermissions`, so the app requests no runtime permissions at all.
+`eas.json` defines three profiles — `development` (dev client), `preview` (installable APK for device testing), and `production` (Play-ready app bundle with an auto-incrementing `versionCode`). The Android build declares `INTERNET`, `VIBRATE` (for haptic feedback, a normal permission that never prompts), and `READ_CONTACTS`. Contacts is the only runtime permission, it is asked for when the "Choose from contacts" button is pressed rather than at launch, and refusing it costs nothing but the typing. Storage, media, overlay, and `WRITE_CONTACTS`, which arrive through native manifest merging, are stripped in `app.json` via `blockedPermissions`.
 
 [docs/PLAY_STORE_RELEASE.md](docs/PLAY_STORE_RELEASE.md) is the full walkthrough — keystore handling, the Play Console forms, store listing copy, and the Data Safety answers. Ready-made listing assets live in [docs/store/](docs/store), along with a privacy policy you can publish as-is.
 
